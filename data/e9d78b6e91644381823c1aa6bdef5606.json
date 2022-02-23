@@ -1,0 +1,20 @@
+{
+    "id": "e9d78b6e91644381823c1aa6bdef5606",
+    "domain": "flaskex",
+    "plugin": {
+        "name": "flaskex",
+        "author": "anfederico",
+        "summary": "Ported version of flaskex example.",
+        "maintainer": [
+            "anfederico", "DogeGui"
+        ],
+        "repo": "https://github.com/flask-plugin/example-flaskex"
+    },
+    "releases": [
+        {
+            "version": "v1.0.0",
+            "download": "https://github.com/flask-plugin/example-flaskex/archive/refs/tags/v1.0.0.zip",
+            "note": "This is a ported simple flask plugin project. Thanks to author @anfederico."
+        }
+    ]
+}
