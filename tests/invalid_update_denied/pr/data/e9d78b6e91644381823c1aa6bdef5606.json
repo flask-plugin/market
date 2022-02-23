@@ -1,0 +1,15 @@
+{
+    "id": "e9d78b6e91644381823c1aa6bdef5606",
+    "domain": "flaskex",
+    "plugin": {
+        "name": "flaskex",
+        "author": "anfederico",
+        "summary": "Ported version of flaskex example."
+    },
+    "releases": [
+        {
+            "version": "v0.1.0",
+            "download": "https://github.com/flask-plugin/flask-plugin/archive/refs/tags/v0.1.0.zip"
+        }
+    ]
+}

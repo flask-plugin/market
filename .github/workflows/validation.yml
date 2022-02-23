@@ -1,0 +1,109 @@
+name: Pull Request Validation
+on:
+  pull_request:
+    branches: [main]
+    types: [opened]
+jobs:
+
+  # Limit PR can only change files under ``data`` directory and ``authors.json``
+  diff:
+    runs-on: ubuntu-latest
+    name: Check changed files
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: List changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v16
+      with:
+        files: |
+          data/*
+          authors.json
+    - name: Limit changed files
+      if: steps.changed-files.outputs.only_changed != 'true'
+      run: |
+        exit 1
+
+  # Check if committer in blacklist
+  blacklist:
+    runs-on: ubuntu-latest
+    name: Check committer
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+    - run: |
+        grep -q -c "${{ github.actor }}" "./github/blacklist" && exit 1 || echo "Not Found"
+      
+  # Check if all json file valid
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate all JSON file
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+    - name: Prepare env
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        curl https://raw.githubusercontent.com/flask-plugin/flask-plugin/main/src/plugin.schema.json -o plugin.schema.json
+    - name: Check authors.json
+      run: |
+        python -m jsonschema author.schema.json -i authors.json
+    - name: Check all plugin.json
+      run: |
+        for file in data/*; do python3 -m jsonschema plugin.schema.json -i ${file} || exit 1; done
+
+  # Validate updated plugins
+  check:
+    runs-on: ubuntu-latest
+    name: Validate changed plugins
+    steps:
+    - name: Checkout pull request branch
+      uses: actions/checkout@v2
+      with:
+        path: pr
+    - name: Checkout main branch
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.base.sha }}
+        path: base
+    - name: Validate changed plugins
+      run: |
+        cp base/registry.py ./registry.py
+        cp base/validate.py ./validate.py
+        python validate.py base pr ${{ github.actor }}
+
+  # Close PR
+  close-pr:
+    runs-on: ubuntu-latest
+    needs: [diff, blacklist, validate, check]
+    name: Close PR
+    steps:
+    - if: always() && failure()
+      uses: superbrothers/close-pull-request@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        comment: "Changes cannot pass test."
+
+  # Approve and merge PR
+  approve-pr:
+    runs-on: ubuntu-latest
+    needs: [diff, blacklist, validate, check]
+    name: Approve and merge PR
+    steps:
+    - if: success()
+      uses: juliangruber/approve-pull-request-action@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        number: ${{ github.event.number }}
+    - if: success()
+      uses: juliangruber/merge-pull-request-action@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        number: ${{ github.event.number }}
+        method: squash

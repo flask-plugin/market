@@ -1,0 +1,31 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "title": "Plugin Authors",
+    "description": "Mapping from plugin author to plugin id.",
+    "type": "object",
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "gituser": {
+                        "type": "string"
+                    },
+                    "plugin": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "gituser",
+                    "plugin"
+                ]
+            },
+            "uniqueItems": true
+        }
+    },
+    "required": [
+        "data"
+    ],
+    "additionalProperties" : false
+}
