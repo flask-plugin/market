@@ -41,9 +41,9 @@ def deleted(old: PluginRegistry, new: PluginRegistry) -> Iterator[Tuple[str, str
 def main(basedir: str, prdir: str, committer: str) -> None:
 
     BaseDataDir, PRDataDir = os.path.join(
-        BaseDir, DataDir), os.path.join(PRDir, DataDir)
+        basedir, DataDir), os.path.join(prdir, DataDir)
     BaseConfigFile, PRConfigFile = os.path.join(
-        BaseDir, Config), os.path.join(PRDir, Config)
+        basedir, Config), os.path.join(prdir, Config)
 
     # Build registry
     base = PluginRegistry.record(BaseConfigFile)
@@ -60,7 +60,7 @@ def main(basedir: str, prdir: str, committer: str) -> None:
     # Check if changes author is committer
     for plugin, author, operation in chain(
             added(base, pr), deleted(base, pr), updated(base, pr)):
-        assert Committer == author
+        assert author == committer
         print(f'{author} - {operation.name}: {plugin}')
 
 
